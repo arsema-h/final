@@ -3,6 +3,7 @@ const express = require("express");
 const cors = require("cors");
 const { Sequelize } = require("sequelize");
 const { sequelize, Restaurant } = require("./models"); // Assuming models/index.js exports sequelize and Restaurant
+const path = require('path');
 
 // Import route files
 const authRoutes = require('./routes/authRoutes');
@@ -23,8 +24,10 @@ app.use('/api/favorites', favoriteRoutes);
 app.use('/api/restaurants', placesRoutes);
 app.use('/api/reviews', reviewsRoutes);
 
-app.get('/', (req, res) => {
-  res.send('Hello from backend!');
+app.use(express.static(path.join(__dirname, 'build')));
+
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
 
 
@@ -70,8 +73,12 @@ app.get('/api/search', async (req, res) => {
 });
 
 // Start server after syncing database
-sequelize.sync().then(() => {
-  app.listen(port, () => {
-    console.log(`Server running on http://localhost:${port}`);
+sequelize.sync()
+  .then(() => {
+    app.listen(port, () => {
+      console.log(`Server running on http://localhost:${port}`);
+    });
+  })
+  .catch((error) => {
+    console.error('Failed to sync database:', error);
   });
-});
